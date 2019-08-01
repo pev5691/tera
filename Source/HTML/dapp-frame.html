@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-Frame-Options" value="sameorigin">
+    <title>DAPP Loading...</title>
+    <link rel="shortcut icon" href="./tera.ico" type="image/vnd.microsoft.icon">
+
+    <script type="text/javascript" src="./JS/crypto-client.js"></script>
+    <script type="text/javascript" src="./JS/coinlib.js"></script>
+    <script type="text/javascript" src="./JS/client.js"></script>
+    <script type="text/javascript" src="./JS/terahashlib.js"></script>
+
+
+    <script>
+
+        InitWalletKeyName();
+
+        window.Storage=window.localStorage;
+
+        var DapNumber="#template-number#";
+        var glSmart=parseInt(DapNumber);
+        var CONFIG_DATA={};
+        var NumDappGet=0;
+        var NumDappInfo=0;
+
+//        var arr = new Uint8Array(6);
+//        window.crypto.getRandomValues(arr);
+//        var glSession=GetHexFromArr(arr);
+
+
+        //DAPP TRANSFER
+        function SendMessage(Data)
+        {
+            var win = window.frames.dapp;
+            if(!win)
+            {
+                console.log("Error window.frames.dapp");
+
+                //try latter
+                setTimeout(function ()
+                {
+                    win.postMessage(Data, "*");
+                },200);
+                return;
+            }
+            //console.log("To dapp: "+JSON.stringify(Data))
+            win.postMessage(Data, "*");
+        }
+
+        var glProgramSetHash;
+        function listener(event)
+        {
+            var Data=event.data;
+            if(!Data || typeof Data!=="object")
+                return;
+
+
+            switch (Data.cmd)
+            {
+                case "pay":
+                {
+                    AddToInvoiceList(Data);
+                    break;
+                }
+                case "setstorage":
+                {
+                    Storage.setItem("DAPP-"+DapNumber+"-"+Data.Key,JSON.stringify(Data.Value));
+                    break;
+                }
+                case "getstorage":
+                {
+                    Data.Value=Storage.getItem("DAPP-"+DapNumber+"-"+Data.Key);
+                    if(Data.Value)
+                        Data.Value=JSON.parse(Data.Value);
+                    SendMessage(Data);
+                    break;
+                }
+                case "setcommon":
+                {
+                    Storage.setItem("DAPP-"+Data.Key,JSON.stringify(Data.Value));
+                    break;
+                }
+                case "getcommon":
+                {
+                    Data.Value=Storage.getItem("DAPP-"+Data.Key);
+                    if(Data.Value)
+                        Data.Value=JSON.parse(Data.Value);
+                    SendMessage(Data);
+                    break;
+                }
+
+                case "DappCall":
+                {
+                    if(!Data.Account)
+                        Data.Account=BASE_ACCOUNT.Num;
+
+                    GetData("DappStaticCall",{Account:Data.Account,MethodName:Data.MethodName,Params:Data.Params}, function (SetData)
+                    {
+                        if(SetData)
+                        {
+                            Data.Err=!SetData.result;
+                            Data.RetValue=SetData.RetValue;
+                        }
+                        else
+                        {
+                            Data.Err=1;
+                        }
+                        SendMessage(Data);
+                    });
+
+                    break;
+                }
+                case "DappSendCall":
+                {
+                    if(!Data.Account)
+                        Data.Account=BASE_ACCOUNT.Num;
+                    if(!Data.FromNum)
+                        Data.FromNum=0;
+
+                    SendCallMethod(Data.Account,Data.MethodName,Data.Params,Data.FromNum,glSmart);
+
+                    break;
+                }
+                case "DappInfo":
+                {
+
+                    //called every 1 sec from dapp-inner.js
+
+                    var AllData=0;
+                    if(Data.AllData || !NumDappGet || NumDappGet%60===0)
+                        AllData=1;
+                    NumDappGet++;
+
+                    var Key=GetPubKey();
+                    GetData("DappInfo",{Smart:glSmart,Key:Key,Session:glSession,NumDappInfo:NumDappInfo,AllData:AllData,AllAccounts:Data.AllAccounts}, function (SetData)
+                    {
+                        if(SetData)
+                        {
+                            Data.Err=!SetData.result;
+                            Data.cache=SetData.cache;
+                            if(SetData.result)
+                            {
+                                CONFIG_DATA=SetData;
+                                SMART=SetData.Smart;
+                                BASE_ACCOUNT=SetData.Account;
+                                SetBlockChainConstant(SetData);
+                                NumDappInfo=SetData.NumDappInfo;
+                                SetArrLog(SetData.ArrLog);
+
+
+                                for(var key in SetData)
+                                    Data[key]=SetData[key];
+                                Data.OPEN_PATH=OPEN_PATH;
+
+                                if(!Data.PubKey)
+                                {
+                                    //support web/light wallet mode:
+                                    Data.PubKey=GetPubKey();
+                                    Data.WalletIsOpen=IsPrivateMode(GetPrivKey());
+                                    Data.WalletCanSign=Data.WalletIsOpen;
+                                }
+                                CONFIG_DATA.WalletCanSign=Data.WalletCanSign;
+                                CONFIG_DATA.PubKey=Data.PubKey;
+                            }
+
+                            SendMessage(Data);
+                        }
+                    });
+                    break;
+                }
+                case "DappWalletList":
+                    var Key=GetPubKey();
+                    Data.Params={Smart:glSmart,Key:Key};
+                case "DappSmartHTMLFile":
+                case "DappBlockFile":
+                case "DappAccountList":
+                case "DappSmartList":
+                case "DappBlockList":
+                case "DappTransactionList":
+                {
+
+                    if(Data.cmd==="DappBlockFile")
+                    {
+                        //check storage
+                        var StrKeyStorage=Data.Params.BlockNum+"-"+Data.Params.TrNum;
+
+                        var Storage2=sessionStorage;
+                        var SavedTextData=Storage2[StrKeyStorage];
+                        if(SavedTextData)
+                        {
+                            var SetData=JSON.parse(SavedTextData);
+                            Data.Err=!SetData.result;
+                            Data.arr=SetData.arr;
+                            Data.Body=SetData.Body;
+                            SendMessage(Data);
+                            return;
+                        }
+                    }
+
+                    Data.Params.Session=glSession;
+                    GetData(Data.cmd,Data.Params, function (SetData,responseText)
+                    {
+                        if(SetData)
+                        {
+                            Data.Err=!SetData.result;
+                            Data.arr=SetData.arr;
+                            Data.Body=SetData.Body;
+                            SendMessage(Data);
+                            if(StrKeyStorage && SetData.result)
+                            {
+                                Storage2[StrKeyStorage]=responseText;
+                            }
+                        }
+                    });
+                    break;
+                }
+
+                case "SetStatus":
+                {
+                    SetStatus(escapeHtml(Data.Message));
+                    break;
+                }
+                case "SetError":
+                {
+                    SetError(escapeHtml(Data.Message));
+                    break;
+                }
+                case "CheckInstall":
+                {
+                    CheckInstall();
+                    break;
+                }
+                case "SetLocationHash":
+                {
+                    glProgramSetHash=1;
+                    window.location.hash="#"+Data.Message;
+                    glProgramSetHash=0;
+                    break;
+                }
+                case "OpenLink":
+                {
+                    var Path=Data.Message.substr(0,200);
+                    if(IsLocalClient() && Path.substr(0,6)==="/dapp/")
+                        Path="?dapp="+Path.substr(6);
+                    //console.log("OpenLink:"+Path);
+                    window.open(Path);
+                    break;
+                }
+                case "ComputeSecret":
+                {
+                    ComputeSecret(Data.Account,Data.PubKey,function (Result)
+                    {
+                        Data.Result=Result;
+                        SendMessage(Data);
+                    });
+                    break;
+                }
+//                case "GetLink":
+//                {
+//                    GetData(Data.url,Data.Params, function (SetData)
+//                    {
+//                        if(SetData)
+//                        {
+//                            SendMessage({cmd:"GetLink",Result:SendData});
+//                        }
+//                    });
+//                    break;
+//                }
+                case "SetMobileMode":
+                {
+                    SetMobileMode();
+                    break;
+                }
+
+                case "CreateNewAccount":
+                {
+                    CreateNewAccount(Data.Currency);
+                    break;
+                }
+            }
+        }
+
+        if (window.addEventListener)
+        {
+            window.addEventListener("message", listener);
+        } else
+        {
+            // IE8
+            window.attachEvent("onmessage", listener);
+        }
+
+        var SMART={},BASE_ACCOUNT={},OPEN_PATH="";
+        window.onload=function()
+        {
+            DoNewSession();
+
+            if(window.location.hash)
+                OPEN_PATH=window.location.hash.substr(1);
+            if(IsLocalClient())
+            {
+                DapNumber=window.location.search.substr(6);
+                if(Storage.getItem("MainServer"))
+                {
+                    MainServer=JSON.parse(Storage.getItem("MainServer"));
+                }
+            }
+            glSmart=parseInt(DapNumber);
+
+
+            var Key=GetPubKey();
+            GetData("DappInfo",{Smart:glSmart, Key:Key, Session:glSession, AllData:1}, function (SetData)
+            {
+                if(!SetData || !SetData.result)
+                    return;
+
+                CONFIG_DATA=SetData;
+                SMART=SetData.Smart;
+                BASE_ACCOUNT=SetData.Account;
+                SetBlockChainConstant(SetData);
+                document.title=SMART.Name;
+
+
+                var HTMLBlock=BASE_ACCOUNT.SmartState.HTMLBlock;
+                var HTMLTr=BASE_ACCOUNT.SmartState.HTMLTr;
+                if(!glDebugPath && HTMLBlock)
+                {
+                    console.log("Load HTML from: /file/"+HTMLBlock+"/"+HTMLTr);
+                    GetData("DappBlockFile",{BlockNum:HTMLBlock,TrNum:HTMLTr}, function (SetData)
+                    {
+                        if(SetData && SetData.result)
+                        {
+                            CreateFrame(SetData);
+                        }
+                    });
+                }
+                else
+                {
+                    GetData("DappSmartHTMLFile",{Smart:glSmart,DebugPath:glDebugPath}, function (SetData)
+                    {
+                        if(SetData && SetData.result)
+                        {
+                            CreateFrame(SetData);
+                        }
+                    });
+                }
+
+
+            });
+
+            if(!window.sha3)
+                LoadLib("./JS/sha3.js");
+            LoadSignLib();
+
+            window.addEventListener("popstate", function(event)
+            {
+                OPEN_PATH=window.location.hash.substr(1);
+                if(!glProgramSetHash)
+                    SendMessage({cmd:"History",OPEN_PATH:OPEN_PATH});
+
+            }, false);
+
+            if(isMobile())
+                SetMobileMode();
+        }
+
+        function CreateFrame(SetData)
+        {
+            var SriptLW="";
+            if(MainServer)
+            {
+                var StrPath=GetProtocolServerPath(MainServer);
+                //console.log("StrPath:"+StrPath);
+                //console.log("WAS:\n"+SetData.Body);
+
+                //поддрежка старого кода dapp (после обновления dapp этот код возможно будет удален)
+                SetData.Body=SetData.Body.replace(/.\/CSS\/[0-9a-z_-]+.css\">/g,StrPath+"$&");
+                SetData.Body=SetData.Body.replace(/.\/JS\/[0-9a-z_-]+.js\">/g,StrPath+"$&");
+
+
+                //TODO: переделать на нормальный парсинг без регулярки
+                //поддержка перенаправления в блокчейн
+                SetData.Body=SetData.Body.replace(/\/file\/[0-9]+\/[0-9]+\"/g,StrPath+"$&");
+                SriptLW='<script>window.PROTOCOL_SERVER_PATH="'+StrPath+'";<\/script>';
+
+                //console.log("NEW:\n"+SetData.Body);
+            }
+
+
+            var iframe = document.createElement('iframe');
+            iframe.name = 'dapp';
+            iframe.sandbox="allow-scripts";
+            SetData.Body='\
+                    <meta charset="UTF-8">\
+                    <meta http-equiv="X-Frame-Options" value="sameorigin">\
+                    <script type="text/javascript" src="./JS/crypto-client.js"><\/script>\
+                    <script type="text/javascript" src="./JS/coinlib.js"><\/script>\
+                    <script type="text/javascript" src="./JS/client.js"><\/script>\
+                    <script type="text/javascript" src="./JS/dapp-inner.js"><\/script>\
+                    <script type="text/javascript" src="./JS/terahashlib.js"><\/script>\
+                    '+SriptLW+SetData.Body;
+
+            iframe.srcdoc=SetData.Body;
+            document.getElementsByTagName('body')[0].appendChild(iframe);
+
+         }
+
+
+        function SetMobileMode()
+        {
+            var newchild = document.createElement("meta")
+            newchild.name = "viewport"
+            newchild.content = "width=device-width, initial-scale=1.0";//, maximum-scale=1.0, user-scalable=0;
+            window.parent.document.getElementsByTagName("head")[0].appendChild(newchild);
+        }
+
+
+        var idInstallApp=0;
+        function CheckInstall()
+        {
+            if(!idInstallApp)
+                idInstallApp=setInterval(RunCheckInstall,2000);
+        }
+        function RunCheckInstall()
+        {
+            if(CONFIG_DATA && CONFIG_DATA.ArrWallet && CONFIG_DATA.ArrWallet.length===0)
+            {
+                var StrRef;
+                if(MainServer)
+                    StrRef='<A class="btcreate" href="./web-wallet.html#TabAccounts">Accounts</A>';
+                else
+                {
+                    if(Storage.getItem("BIGWALLET"))
+                        StrRef='<A class="btcreate" href="/wallet.html#TabAccounts">Config</A>'
+                    else
+                        StrRef='<A class="btcreate" href="/web-wallet.html#TabAccounts">Accounts</A>';
+                }
+
+                var Str='<DIV style="background-color: #c8ecff;">For install this app press: <button class="btcreate" onclick="InstallApp()">Create account</button> or goto '+StrRef+' tab and Set smart number <B>'+SMART.Num+'</B> to your account<DIV>';
+                SetStatus(Str);
+            }
+
+        }
+
+        //LIB
+        function SetArrLog(arr)
+        {
+            var Str="";
+            if(arr)
+            for(var i=0;i<arr.length;i++)
+            {
+                var Item=arr[i];
+                if(!Item.final)
+                    continue;
+                if(Item.text.indexOf("Add to blockchain")>=0)
+                    continue;
+
+
+                var TR=MapSendTransaction[Item.key];
+                if(TR && !TR.WasSend && Item.final)
+                {
+                    var Data={};
+                    Data.cmd="OnEvent";
+                    Data.Description="Error: "+Item.text;
+                    Data.Error=1;
+                    //console.log(JSON.stringify(Item));
+                    SendMessage(Data);
+                    TR.WasSend=1;
+                }
+            }
+         }
+        function IsPrivateMode(PrivKeyStr)
+        {
+            if(PrivKeyStr  && PrivKeyStr.length===64)
+                return 1;
+            else
+                return 0;
+        }
+
+
+        function SetStatus(Str)
+        {
+            var id = $("idStatus");
+            id.innerHTML=Str;
+            console.log(id.innerText);
+        }
+
+        function SetError(Str,bNoSound)
+        {
+            SetStatus("<DIV style='color:red'><B>"+Str+"</B></DIV>");
+        }
+
+
+        function CreateNewWebKeys()
+        {
+            var arr = new Uint8Array(32);
+            window.crypto.getRandomValues(arr);
+            var PrivKey=sha3(arr);
+            SetPrivKey(GetHexFromArr(PrivKey));
+            Storage.setItem("idPubKey",GetHexFromArr(SignLib.publicKeyCreate(PrivKey,1)));
+            CONFIG_DATA.PubKey=GetPubKey();
+
+
+            //console.log("CreateNewWebKeys: "+CONFIG_DATA.PubKey);
+        }
+
+        var CountCreateNewAccount=0;
+        function CreateNewAccount(Currency)
+        {
+            if(!CONFIG_DATA.WalletCanSign)
+            {
+                if(Storage.getItem("BIGWALLET") || IsLockedWallet())
+                {
+                    SetError("Pls, open wallet");
+                    return;
+                }
+
+                CreateNewWebKeys();
+            }
+            if(CountCreateNewAccount>20)
+                return;
+            CountCreateNewAccount++;
+
+            SetStatus("Calculate Tx, wait pls ...");
+            var TR=GetTrCreateAcc(Currency,CONFIG_DATA.PubKey,SMART.Name,0,SMART.Num);
+            var Body=GetBodyCreateAcc(TR);
+            SendTransaction(Body,TR);
+        }
+
+        function InstallApp()
+        {
+
+            CreateNewAccount(BASE_ACCOUNT.Currency);
+
+            if(idInstallApp)
+            {
+                clearInterval(idInstallApp);
+                idInstallApp=setInterval(RunCheckInstall,30000);
+            }
+
+        }
+
+    </script>
+
+    <style>
+        iframe
+        {
+            left:0;
+            top: 20px;
+            width: 100%;
+            height: 97vh;
+            border: 0;
+        }
+        #idStatus
+        {
+            text-align: center;
+            position:fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height:18px;
+            padding: 0;
+            margin: 0;
+            background-color:white;
+        }
+        .btcreate
+        {
+            height:18px;
+            background-color: #347867;
+            color: white;
+            cursor: pointer;
+            border-radius: 3px;
+            padding: 2px;
+            text-decoration: none;
+            border: 1px solid gray;
+        }
+
+    </style>
+
+</head>
+<body>
+<DIV id="idStatus"></DIV>
+</body>
+</html>
+<script>
+    var glDebugPath="";
+    //glDebugPath="./dapp-smart/forum.html";
+    //glDebugPath="./dapp-smart/DEX.html";
+    //glDebugPath="./dapp-smart/OnlineStore.html";
+    //glDebugPath="./dapp-smart/BTC-coin.html";
+    //glDebugPath="./dapp-smart/static/miner-list.html";
+    //glDebugPath="./dapp-smart/acc-control/RescueMoney2.html";
+    //glDebugPath="./dapp-smart/airdrop/page.html";
+    //{"HTMLBlock":8653023,"HTMLTr":0}
+</script>
+

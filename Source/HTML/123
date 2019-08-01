@@ -1,0 +1,162 @@
+Сравнение файлов mobile-wallet.html и _MOBILE-WALLET.HTML
+***** mobile-wallet.html
+            <a onclick="SelectTab('TabWelcome')" class="header__logo-link" id="MTabWelcome">
+                <!--<img src="./PIC/Tera_logo2.svg" alt="Tera logo" height="25" width="104">-->
+                <svg width="104" height="25" viewBox="0 0 105 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+***** _MOBILE-WALLET.HTML
+            <a onclick="SelectTab('TabWelcome')" class="header__logo-link" id="MTabWelcome">
+
+                <svg width="104" height="25" viewBox="0 0 105 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+*****
+
+***** mobile-wallet.html
+        <div class="welcome__img">
+            <svg class="mobile" id="tera-logo" height="126" width="130" fill="#445368" xmlns="http://www.w3.org/2000/svg" viewB
+ox="0 0 992.13 992.13">
+***** _MOBILE-WALLET.HTML
+        <div class="welcome__img">
+            <svg class="mobile" id="tera-logo" height="104" width="107" fill="#445368" xmlns="http://www.w3.org/2000/svg" viewB
+ox="0 0 992.13 992.13">
+*****
+
+***** mobile-wallet.html
+
+            <textarea name="private-key" id="idPrivKeyEdit" placeholder="Insert your private key or generate a new key below...
+" class="key-field__textarea" oninput="OnEditPrivKey()">
+            </textarea>
+***** _MOBILE-WALLET.HTML
+
+            <textarea name="private-key" 
+                      id="idPrivKeyEdit" 
+                      placeholder="Insert your private key or generate a new key below..."
+                      class="key-field__textarea"
+                      oninput="OnEditPrivKey()">
+
+            </textarea>
+*****
+
+***** mobile-wallet.html
+                
+                <select size="1" id="idAccountCur" class="bigs key-field__input key-field__input--select">
+                    <option value="0">TERA</option>
+***** _MOBILE-WALLET.HTML
+                
+                <select size="1" id="idAccountCur" class="bigs key-field__input">
+                    <option value="0">TERA</option>
+*****
+
+***** mobile-wallet.html
+                <p class="key-field__title">From:</p>
+                <button onclick="SetAllSum()" title="Paste total amount" class="key-field__btn btn-no-bg no-mr" style="padding:
+ 0; margin-left: 10px;">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M15 1H3C1.89543 1 1 1.89543 1 3V15C1 16.1046 1.89543 1
+7 3 17H15C16.1046 17 17 16.1046 17 15V3C17 1.89543 16.1046 1 15 1ZM3 0C1.34315 0 0 1.34315 0 3V15C0 16.6569 1.34315 18 3 18H15C
+16.6569 18 18 16.6569 18 15V3C18 1.34315 16.6569 0 15 0H3ZM6.64645 10.6464C6.84171 10.4512 7.15829 10.4512 7.35355 10.6464L9.5 
+12.7929V6C9.5 5.17157 8.82843 4.5 8 4.5H6C5.72386 4.5 5.5 4.27614 5.5 4C5.5 3.72386 5.72386 3.5 6 3.5H8C9.38071 3.5 10.5 4.6192
+9 10.5 6V12.7929L12.6464 10.6464C12.8417 10.4512 13.1583 10.4512 13.3536 10.6464C13.5488 10.8417 13.5488 11.1583 13.3536 11.353
+6L10.3536 14.3536L10 14.7071L9.64645 14.3536L6.64645 11.3536C6.45118 11.1583 6.45118 10.8417 6.64645 10.6464Z"/>
+                    </svg>
+                </button>
+                <select size="1" id="idAccount" class="key-field__select" oninput="OnEditTransactionFields(); CheckSending();">
+***** _MOBILE-WALLET.HTML
+                <p class="key-field__title">From:</p>
+                <select size="1" id="idAccount" class="key-field__select" oninput="OnEditTransactionFields(); CheckSending();">
+*****
+
+***** mobile-wallet.html
+                <label for="idTo" class="key-field__title">Pay to:</label>
+                <span id="idNameTo2" style="margin: 5px 10px 0 15px"></span>
+                <!--<button class="key-field__btn btn-no-bg">Paste</button>-->
+***** _MOBILE-WALLET.HTML
+                <label for="idTo" class="key-field__title">Pay to:</label>
+                <span id="idNameTo2" style="margin: 0 10px 0 0"></span>
+                <!--<button class="key-field__btn btn-no-bg">Paste</button>-->
+*****
+
+***** mobile-wallet.html
+                <!--<b>2 000 000 000,00000000</b>-->
+                <input type="number" 
+***** _MOBILE-WALLET.HTML
+                <!--<b>2 000 000 000,00000000</b>-->
+                <button onclick="SetAllSum()" title="Paste total amount" class="key-field__btn btn-no-bg no-mr" style="padding:
+ 0; margin-left: 10px;">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M15 1H3C1.89543 1 1 1.89543 1 3V15C1 16.1046 1.89543 1
+7 3 17H15C16.1046 17 17 16.1046 17 15V3C17 1.89543 16.1046 1 15 1ZM3 0C1.34315 0 0 1.34315 0 3V15C0 16.6569 1.34315 18 3 18H15C
+16.6569 18 18 16.6569 18 15V3C18 1.34315 16.6569 0 15 0H3ZM6.64645 10.6464C6.84171 10.4512 7.15829 10.4512 7.35355 10.6464L9.5 
+12.7929V6C9.5 5.17157 8.82843 4.5 8 4.5H6C5.72386 4.5 5.5 4.27614 5.5 4C5.5 3.72386 5.72386 3.5 6 3.5H8C9.38071 3.5 10.5 4.6192
+9 10.5 6V12.7929L12.6464 10.6464C12.8417 10.4512 13.1583 10.4512 13.3536 10.6464C13.5488 10.8417 13.5488 11.1583 13.3536 11.353
+6L10.3536 14.3536L10 14.7071L9.64645 14.3536L6.64645 11.3536C6.45118 11.1583 6.45118 10.8417 6.64645 10.6464Z"/>
+                    </svg>
+                </button>
+                <input type="number" 
+*****
+
+***** mobile-wallet.html
+                <label for="idDescription" class="key-field__title">Description:</label>
+                <textarea name="description" id="idDescription" rows="2" placeholder="Optional..." class="key-field__textarea" 
+oninput="CheckLengthAccDesription('idDescription',200); OnEditTransactionFields()">
+                </textarea>
+***** _MOBILE-WALLET.HTML
+                <label for="idDescription" class="key-field__title">Description:</label>
+                <textarea name="description" 
+                          id="idDescription" 
+                          rows="2" 
+                          placeholder="Optional..."
+                          class="key-field__textarea" 
+                          oninput="CheckLengthAccDesription('idDescription',200);OnEditTransactionFields()">
+                </textarea>
+*****
+
+***** mobile-wallet.html
+            <div class="dapps-page__pagination page-pagination">
+                <button onclick="ViewBegin(DefDapps)" class="btn dapps-page__page-btns">| &lt;</button>
+                <button onclick="ViewPrev(DefDapps)" class="btn dapps-page__page-btns">&lt;</button>
+***** _MOBILE-WALLET.HTML
+            <div class="dapps-page__pagination page-pagination">
+                <button onclick="ViewBegin(DefDapps)" class="btn dapps-page__page-btns">|&lt;</button>
+                <button onclick="ViewPrev(DefDapps)" class="btn dapps-page__page-btns">&lt;</button>
+*****
+
+***** mobile-wallet.html
+                <button onclick="ViewNext(DefDapps,CONFIG_DATA.MaxDappsID)" class="btn dapps-page__page-btns">&gt;</button>
+                <button onclick="ViewEnd(DefDapps,CONFIG_DATA.MaxDappsID)" class="btn dapps-page__page-btns">&gt; |</button>
+            </div>
+***** _MOBILE-WALLET.HTML
+                <button onclick="ViewNext(DefDapps,CONFIG_DATA.MaxDappsID)" class="btn dapps-page__page-btns">&gt;</button>
+                <button onclick="ViewEnd(DefDapps,CONFIG_DATA.MaxDappsID)" class="btn dapps-page__page-btns">&gt;|</button>
+            </div>
+*****
+
+***** mobile-wallet.html
+            <div class="explorer-page__table-wrap">
+                <table id="dapps_list" class="grid dapps__table">
+                    <tr>
+***** _MOBILE-WALLET.HTML
+            <div class="explorer-page__table-wrap">
+                <table id="dapps_list" class="grid">
+                    <tr>
+*****
+
+***** mobile-wallet.html
+                            <div class="prod-card__heading">
+                                <a href="#" class="prod-card__link" onclick="OpenDapp(Item.Num)">Item.Name</a>
+                                <!--<span class="lighter-grey-text">Without token generate</span>-->
+***** _MOBILE-WALLET.HTML
+                            <div class="prod-card__heading">
+                                Item.Name
+                                <!--<span class="lighter-grey-text">Without token generate</span>-->
+*****
+
+***** mobile-wallet.html
+                        <div class="prod-card__second-line-img">
+                            <a href="#" class="prod-card__link" onclick="OpenDapp(Item.Num)"><img src="Item.IconPath" alt="dApp
+ logo" width="32"></a>
+                        </div>
+***** _MOBILE-WALLET.HTML
+                        <div class="prod-card__second-line-img">
+                            <img src="Item.IconPath" alt="dApp logo" width="32">
+                        </div>
+*****
+
